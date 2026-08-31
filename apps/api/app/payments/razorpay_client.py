@@ -1,5 +1,8 @@
+from dotenv import load_dotenv
 import os
 import razorpay
+
+load_dotenv()
 
 
 class RazorpayClient:
@@ -30,3 +33,6 @@ class RazorpayClient:
         })
 
         return order
+
+
+razorpay_client = RazorpayClient()
