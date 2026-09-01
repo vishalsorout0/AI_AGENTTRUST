@@ -30,7 +30,8 @@ def create(data: PaymentRequest):
 def order(data: OrderRequest):
     return create_order(
         amount=data.amount,
-        currency=data.currency
+        currency=data.currency,
+        transaction_id=data.transaction_id
     )
 
 

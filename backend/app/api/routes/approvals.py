@@ -53,9 +53,9 @@ def create_approval(transaction_id: str):
 
 @router.post("/decision")
 def approval_decision(data: ApprovalRequest):
-    approval = approvals.get(data.transaction_id)
+    approval = None
 
-    if not approval and supabase:
+    if supabase:
         response = (
             supabase
             .table("approvals")
@@ -66,6 +66,9 @@ def approval_decision(data: ApprovalRequest):
 
         if response.data:
             approval = response.data[0]
+
+    if not approval:
+        approval = approvals.get(data.transaction_id)
 
     if not approval:
         raise HTTPException(
@@ -79,22 +82,27 @@ def approval_decision(data: ApprovalRequest):
     approval["approver_id"] = data.approver_id
 
     if supabase:
-        supabase.table("approvals").update({
-            "status": status,
-            "approver_id": data.approver_id
-        }).eq(
-            "transaction_id",
-            data.transaction_id
-        ).execute()
+        response = (
+            supabase
+            .table("approvals")
+            .update({
+                "status": status,
+                "approver_id": data.approver_id
+            })
+            .eq("transaction_id", data.transaction_id)
+            .execute()
+        )
+
+        if response.data:
+            approval = response.data[0]
+
+    approvals[data.transaction_id] = approval
 
     return approval
 
-
 @router.get("/{transaction_id}")
 def get_approval(transaction_id: str):
-    approval = approvals.get(transaction_id)
-
-    if not approval and supabase:
+    if supabase:
         response = (
             supabase
             .table("approvals")
@@ -104,7 +112,9 @@ def get_approval(transaction_id: str):
         )
 
         if response.data:
-            approval = response.data[0]
+            return response.data[0]
+
+    approval = approvals.get(transaction_id)
 
     if not approval:
         raise HTTPException(

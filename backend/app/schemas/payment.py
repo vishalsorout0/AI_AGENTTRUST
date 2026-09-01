@@ -15,3 +15,4 @@ class RefundRequest(BaseModel):
 class OrderRequest(BaseModel):
     amount: float
     currency: str = "INR"
+    transaction_id: str
