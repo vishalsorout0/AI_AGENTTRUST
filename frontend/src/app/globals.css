@@ -1807,3 +1807,70 @@ button {
     min-width: 760px;
   }
 }
+
+
+.ai-buyer-box {
+  margin: 32px 0;
+  padding: 28px;
+  border: 1px solid #2a2a2a;
+  border-radius: 18px;
+  background: #111;
+}
+
+.ai-buyer-box h2 {
+  margin: 8px 0;
+}
+
+.ai-buyer-box p {
+  color: #999;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+.ai-input-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.ai-input-row input {
+  flex: 1;
+  padding: 15px 16px;
+  border: 1px solid #333;
+  border-radius: 10px;
+  background: #080808;
+  color: white;
+  font-size: 15px;
+  outline: none;
+}
+
+.ai-input-row input:focus {
+  border-color: #666;
+}
+
+.ai-input-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-result {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 12px;
+  background: #181818;
+  line-height: 1.8;
+}
+
+.ai-security-note {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #333;
+  font-size: 13px;
+  color: #aaa;
+}
+
+@media (max-width: 700px) {
+  .ai-input-row {
+    flex-direction: column;
+  }
+}

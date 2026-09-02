@@ -3,18 +3,24 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { loadRazorpay } from "../lib/razorpay";
-import Catalog from "./Catalog";
+import Catalog, { products } from "./Catalog";
 
 export default function BuyerAgent() {
   const [agents, setAgents] = useState([]);
   const [selectedAgent, setSelectedAgent] = useState("");
+
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  const [userPrompt, setUserPrompt] = useState("");
+  const [aiResult, setAiResult] = useState(null);
+
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
 
   const [result, setResult] = useState(null);
   const [paymentResult, setPaymentResult] = useState(null);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -29,7 +35,9 @@ export default function BuyerAgent() {
         setAgents(list);
 
         if (list.length > 0) {
-          setSelectedAgent(list[0].id || list[0].agent_id);
+          setSelectedAgent(
+            list[0].id || list[0].agent_id
+          );
         }
       } catch (err) {
         setError(err.message);
@@ -39,9 +47,72 @@ export default function BuyerAgent() {
     loadAgents();
   }, []);
 
-  async function handlePurchase(product) {
+  async function handleAIRequest() {
+    if (!userPrompt.trim()) {
+      setError(
+        "Tell the AI Buyer what you want to buy."
+      );
+      return;
+    }
+
     if (!selectedAgent) {
       setError("Please select an AI agent first.");
+      return;
+    }
+
+    setAiLoading(true);
+    setError("");
+    setAiResult(null);
+    setResult(null);
+    setPaymentResult(null);
+
+    try {
+      const response = await fetch(
+        "/api/ai/buyer",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            message: userPrompt,
+            products
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+          "AI Buyer failed."
+        );
+      }
+
+      if (!data?.product) {
+        throw new Error(
+          "AI did not select a valid product."
+        );
+      }
+
+      setAiResult(data);
+
+      // AI selects the product.
+      // AgentTrust still controls payment authorization.
+      await handlePurchase(data.product);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  async function handlePurchase(product) {
+    if (!selectedAgent) {
+      setError(
+        "Please select an AI agent first."
+      );
       return;
     }
 
@@ -53,42 +124,48 @@ export default function BuyerAgent() {
 
     const agentId = selectedAgent;
     const amount = Number(product.price);
-    const category = product.category || "GENERAL";
+    const category =
+      product.category || "GENERAL";
 
     try {
-      const authorization = await api.authorizeTransaction({
-        agent_id: agentId,
-        amount,
-        category
-      });
+      const authorization =
+        await api.authorizeTransaction({
+          agent_id: agentId,
+          amount,
+          category
+        });
 
-      const risk = await api.calculateRisk({
-        agent_id: agentId,
-        amount,
-        category
-      });
+      const risk =
+        await api.calculateRisk({
+          agent_id: agentId,
+          amount,
+          category
+        });
 
-      const policy = await api.evaluatePolicy({
-        agent_id: agentId,
-        amount,
-        category
-      });
+      const policy =
+        await api.evaluatePolicy({
+          agent_id: agentId,
+          amount,
+          category
+        });
 
-      const decision = await api.transactionDecision({
-        agent_id: agentId,
-        amount,
-        category,
-        authorization,
-        risk,
-        policy
-      });
+      const decision =
+        await api.transactionDecision({
+          agent_id: agentId,
+          amount,
+          category,
+          authorization,
+          risk,
+          policy
+        });
 
-      const decisionValue = String(
-        decision?.decision ||
-        decision?.status ||
-        decision?.result ||
-        ""
-      ).toUpperCase();
+      const decisionValue =
+        String(
+          decision?.decision ||
+          decision?.status ||
+          decision?.result ||
+          ""
+        ).toUpperCase();
 
       setResult({
         authorization,
@@ -103,7 +180,6 @@ export default function BuyerAgent() {
         decisionValue === "DENY" ||
         decisionValue === "DENIED"
       ) {
-        setLoading(false);
         return;
       }
 
@@ -112,7 +188,6 @@ export default function BuyerAgent() {
         decisionValue === "STEP-UP" ||
         decisionValue === "STEPUP"
       ) {
-        setLoading(false);
         return;
       }
 
@@ -148,16 +223,18 @@ export default function BuyerAgent() {
     setError("");
 
     try {
-      const order = await api.createOrder({
-        agent_id: agentId,
-        amount: Number(product.price),
-        currency: "INR",
-        product_id: product.id,
-        product_name: product.name,
-        transaction_id: transactionId
-      });
+      const order =
+        await api.createOrder({
+          agent_id: agentId,
+          amount: Number(product.price),
+          currency: "INR",
+          product_id: product.id,
+          product_name: product.name,
+          transaction_id: transactionId
+        });
 
-      const razorpayLoaded = await loadRazorpay();
+      const razorpayLoaded =
+        await loadRazorpay();
 
       if (!razorpayLoaded) {
         throw new Error(
@@ -173,7 +250,8 @@ export default function BuyerAgent() {
       const keyId =
         order?.key_id ||
         order?.razorpay_key_id ||
-        process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+        process.env
+          .NEXT_PUBLIC_RAZORPAY_KEY_ID;
 
       if (!orderId) {
         throw new Error(
@@ -189,10 +267,15 @@ export default function BuyerAgent() {
 
       const options = {
         key: keyId,
-        amount: Number(product.price) * 100,
+        amount:
+          Number(product.price) * 100,
         currency: "INR",
+
         name: "AgentTrust",
-        description: `AI purchase: ${product.name}`,
+
+        description:
+          `AI purchase: ${product.name}`,
+
         order_id: orderId,
 
         handler: function (response) {
@@ -216,15 +299,19 @@ export default function BuyerAgent() {
         }
       };
 
-      const razorpay = new window.Razorpay(options);
+      const razorpay =
+        new window.Razorpay(options);
 
-      razorpay.on("payment.failed", function (response) {
-        setPaymentResult({
-          success: false,
-          failed: true,
-          response
-        });
-      });
+      razorpay.on(
+        "payment.failed",
+        function (response) {
+          setPaymentResult({
+            success: false,
+            failed: true,
+            response
+          });
+        }
+      );
 
       razorpay.open();
     } catch (err) {
@@ -234,50 +321,177 @@ export default function BuyerAgent() {
     }
   }
 
-  const decisionValue = String(
-    result?.decision?.decision ||
-    result?.decision?.status ||
-    result?.decision?.result ||
-    ""
-  ).toUpperCase();
+  const decisionValue =
+    String(
+      result?.decision?.decision ||
+      result?.decision?.status ||
+      result?.decision?.result ||
+      ""
+    ).toUpperCase();
+
+  const isBlocked =
+    decisionValue === "BLOCK" ||
+    decisionValue === "BLOCKED" ||
+    decisionValue === "DENY" ||
+    decisionValue === "DENIED";
+
+  const isStepUp =
+    decisionValue === "STEP_UP" ||
+    decisionValue === "STEP-UP" ||
+    decisionValue === "STEPUP";
+
+  const isApproved =
+    decisionValue === "APPROVE" ||
+    decisionValue === "APPROVED";
 
   return (
     <section className="buyer-page">
+
       <div className="buyer-header">
+
         <div>
           <div className="eyebrow">
             AGENTTRUST / AI BUYER
           </div>
 
-          <h1>Let the agent shop.</h1>
+          <h1>
+            Let the agent shop.
+          </h1>
 
           <p>
-            The AI can choose what to buy.
+            Tell the AI what you need.
+            The AI selects the product.
             AgentTrust decides whether it can pay.
           </p>
         </div>
 
         <div className="agent-selector">
-          <label>Buying Agent</label>
+
+          <label>
+            Buying Agent
+          </label>
 
           <select
             value={selectedAgent}
             onChange={(e) =>
-              setSelectedAgent(e.target.value)
+              setSelectedAgent(
+                e.target.value
+              )
             }
           >
             {agents.map((agent) => {
               const id =
-                agent.id || agent.agent_id;
+                agent.id ||
+                agent.agent_id;
 
               return (
-                <option key={id} value={id}>
+                <option
+                  key={id}
+                  value={id}
+                >
                   {agent.name || id}
                 </option>
               );
             })}
           </select>
+
         </div>
+
+      </div>
+
+      <div className="ai-buyer-box">
+
+        <div className="eyebrow">
+          AUTONOMOUS AI BUYER
+        </div>
+
+        <h2>
+          What do you want me to buy?
+        </h2>
+
+        <p>
+          Describe your requirement naturally.
+          Mistral will select the best product
+          from the catalog.
+        </p>
+
+        <div className="ai-input-row">
+
+          <input
+            value={userPrompt}
+            onChange={(e) =>
+              setUserPrompt(
+                e.target.value
+              )
+            }
+            placeholder="e.g. Find me the best laptop under ₹3 lakh"
+            disabled={
+              aiLoading || loading
+            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleAIRequest();
+              }
+            }}
+          />
+
+          <button
+            className="buy-button"
+            onClick={handleAIRequest}
+            disabled={
+              aiLoading || loading
+            }
+          >
+            {aiLoading
+              ? "Mistral is thinking..."
+              : "Ask AI →"}
+          </button>
+
+        </div>
+
+        {aiResult && (
+          <div className="ai-result">
+
+            <div>
+              <strong>
+                AI selected:
+              </strong>{" "}
+              {aiResult.product.name}
+            </div>
+
+            <div>
+              <strong>
+                Price:
+              </strong>{" "}
+              ₹
+              {Number(
+                aiResult.product.price
+              ).toLocaleString("en-IN")}
+            </div>
+
+            <div>
+              <strong>
+                Reason:
+              </strong>{" "}
+              {aiResult.reason}
+            </div>
+
+            <div>
+              <strong>
+                Confidence:
+              </strong>{" "}
+              {aiResult.confidence}%
+            </div>
+
+            <div className="ai-security-note">
+              Mistral selected the product.
+              AgentTrust still controls
+              the payment.
+            </div>
+
+          </div>
+        )}
+
       </div>
 
       {error && (
@@ -286,34 +500,56 @@ export default function BuyerAgent() {
         </div>
       )}
 
-      <Catalog onBuy={handlePurchase} />
-
+      {/* AgentTrust decision is shown BEFORE the catalog */}
       {loading && (
         <div className="decision-result">
-          <h3>AgentTrust is evaluating...</h3>
+
+          <h3>
+            AgentTrust is evaluating...
+          </h3>
 
           <div className="decision-signals">
-            <div>Identity → checking</div>
-            <div>Authorization → checking</div>
-            <div>Risk → checking</div>
-            <div>Policy → checking</div>
+
+            <div>
+              Identity → checking
+            </div>
+
+            <div>
+              Authorization → checking
+            </div>
+
+            <div>
+              Risk → checking
+            </div>
+
+            <div>
+              Policy → checking
+            </div>
+
           </div>
+
         </div>
       )}
 
       {result && !loading && (
         <div className="decision-result">
+
           <div className="eyebrow">
             AGENTTRUST DECISION CENTER
           </div>
 
           <h2>
-            {decisionValue || "DECISION RECEIVED"}
+            {decisionValue ||
+              "DECISION RECEIVED"}
           </h2>
 
           <div className="decision-signals">
+
             <div>
-              <span>Authorization</span>
+              <span>
+                Authorization
+              </span>
+
               <strong>
                 {getStatus(
                   result.authorization
@@ -322,87 +558,124 @@ export default function BuyerAgent() {
             </div>
 
             <div>
-              <span>Risk</span>
+              <span>
+                Risk
+              </span>
+
               <strong>
-                {getRisk(result.risk)}
+                {getRisk(
+                  result.risk
+                )}
               </strong>
             </div>
 
             <div>
-              <span>Policy</span>
+              <span>
+                Policy
+              </span>
+
               <strong>
-                {getStatus(result.policy)}
+                {getStatus(
+                  result.policy
+                )}
               </strong>
             </div>
 
             <div>
-              <span>Final Decision</span>
+              <span>
+                Final Decision
+              </span>
+
               <strong>
-                {decisionValue || "UNKNOWN"}
+                {decisionValue ||
+                  "UNKNOWN"}
               </strong>
             </div>
+
           </div>
 
-          {decisionValue === "BLOCK" ||
-          decisionValue === "BLOCKED" ||
-          decisionValue === "DENY" ||
-          decisionValue === "DENIED" ? (
+          {isBlocked && (
             <div className="blocked-message">
-              Payment blocked by AgentTrust.
+
+              Payment blocked by
+              AgentTrust.
+
               <br />
+
               Razorpay was never called.
-            </div>
-          ) : null}
 
-          {decisionValue === "STEP_UP" ||
-          decisionValue === "STEP-UP" ||
-          decisionValue === "STEPUP" ? (
+            </div>
+          )}
+
+          {isStepUp && (
             <div className="stepup-message">
-              Human approval is required.
-              <br />
-              Payment cannot reach Razorpay until approval.
-            </div>
-          ) : null}
 
-          {decisionValue === "APPROVE" ||
-          decisionValue === "APPROVED" ? (
+              Human approval is required.
+
+              <br />
+
+              Payment cannot reach
+              Razorpay until approval.
+
+            </div>
+          )}
+
+          {isApproved && (
             <div className="payment-created">
-              AgentTrust approved this transaction.
+
+              AgentTrust approved
+              this transaction.
+
               <br />
 
               {paymentLoading
                 ? "Opening Razorpay Checkout..."
                 : "Razorpay Checkout is ready."}
+
             </div>
-          ) : null}
+          )}
+
         </div>
       )}
 
+      {/* Catalog comes AFTER the decision */}
+      <Catalog
+        onBuy={handlePurchase}
+      />
+
       {paymentResult?.success && (
         <div className="payment-created">
-          <h3>Payment successful</h3>
+
+          <h3>
+            Payment successful
+          </h3>
 
           <p>
-            AgentTrust authorized the purchase and
-            Razorpay processed the payment.
+            AgentTrust authorized
+            the purchase and Razorpay
+            processed the payment.
           </p>
 
-          {paymentResult.response
+          {paymentResult
+            .response
             ?.razorpay_payment_id && (
             <small>
               Payment ID:{" "}
               {
-                paymentResult.response
+                paymentResult
+                  .response
                   .razorpay_payment_id
               }
             </small>
           )}
+
         </div>
       )}
 
       {paymentResult?.cancelled && (
         <div className="stepup-message">
-          Razorpay Checkout was cancelled.
+          Razorpay Checkout
+          was cancelled.
         </div>
       )}
 
@@ -414,22 +687,27 @@ export default function BuyerAgent() {
 
       {selectedProduct && (
         <div className="selected-product">
-          Selected: {selectedProduct.name}
+          Selected:{" "}
+          {selectedProduct.name}
         </div>
       )}
+
     </section>
   );
 }
 
 function getStatus(value) {
-  if (!value) return "UNKNOWN";
+  if (!value) {
+    return "UNKNOWN";
+  }
 
-  const status = String(
-    value?.status ||
-    value?.decision ||
-    value?.result ||
-    "PASS"
-  ).toUpperCase();
+  const status =
+    String(
+      value?.status ||
+      value?.decision ||
+      value?.result ||
+      "PASS"
+    ).toUpperCase();
 
   if (
     status.includes("FAIL") ||
