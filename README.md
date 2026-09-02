@@ -1118,6 +1118,15 @@ Audit
 The result is an AI commerce system where every money action is:
 
 **Explainable. Bounded. Gated. Auditable.**
+
+**Screenshots**
+<img width="1860" height="672" alt="Screenshot 2026-09-03 004411" src="https://github.com/user-attachments/assets/432049f6-fd39-4146-bc9e-a85ff4082a66" />
+<img width="1826" height="896" alt="Screenshot 2026-09-03 004357" src="https://github.com/user-attachments/assets/d50b232f-6b29-4c2d-bce7-c2eb96024d75" />
+<img width="1881" height="757" alt="Screenshot 2026-09-03 004344" src="https://github.com/user-attachments/assets/c42004e8-f664-482c-8b4c-f22ae1d00856" />
+<img width="1862" height="891" alt="Screenshot 2026-09-03 004309" src="https://github.com/user-attachments/assets/c6d29bdc-f71a-45f5-816e-3f4b40a0f627" />
+<img width="1891" height="775" alt="Screenshot 2026-09-03 004253" src="https://github.com/user-attachments/assets/7a812529-ff07-4414-94d4-569bea42fb00" />
+<img width="1830" height="886" alt="Screenshot 2026-09-03 004010" src="https://github.com/user-attachments/assets/76154e73-2441-46d6-8ad4-32fee60d6b1a" />
+
 ---
 
 <p align="center">
