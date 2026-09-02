@@ -7,7 +7,7 @@ const products = [
     category: "ELECTRONICS",
     description:
       "High-performance laptop for development and AI workloads.",
-    price: 89999,
+    price: 250000,
     icon: "💻"
   },
   {
@@ -25,7 +25,7 @@ const products = [
     category: "ELECTRONICS",
     description:
       "Ultra HD monitor for development and productivity.",
-    price: 45999,
+    price: 14999,
     icon: "🖥️"
   },
   {
@@ -34,7 +34,7 @@ const products = [
     category: "ACCESSORIES",
     description:
       "Mechanical keyboard built for developers.",
-    price: 12999,
+    price: 2999,
     icon: "⌨️"
   }
 ];

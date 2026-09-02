@@ -1,24 +1,29 @@
-const API_URL = "http://localhost:8000"
-  // process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8000";
 
 async function request(endpoint, options = {}) {
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {})
-    },
-    cache: "no-store"
-  });
+  const response = await fetch(
+    `${API_URL}${endpoint}`,
+    {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      },
+      cache: "no-store"
+    }
+  );
 
-  const data = await response.json().catch(() => null);
+  const data = await response
+    .json()
+    .catch(() => null);
 
   if (!response.ok) {
     throw new Error(
       data?.detail ||
-      data?.message ||
-      `API request failed: ${response.status}`
+        data?.message ||
+        `API request failed: ${response.status}`
     );
   }
 
@@ -32,17 +37,26 @@ export const api = {
   getAgents: () =>
     request("/agents"),
 
+
   getAgent: (agentId) =>
-    request(`/agents/${encodeURIComponent(agentId)}`),
+    request(
+      `/agents/${encodeURIComponent(agentId)}`
+    ),
 
   getAgentIdentity: (agentId) =>
-    request(`/agents/${encodeURIComponent(agentId)}/identity`),
+    request(
+      `/agents/${encodeURIComponent(agentId)}/identity`
+    ),
 
   getAgentCapabilities: (agentId) =>
-    request(`/agents/${encodeURIComponent(agentId)}/capabilities`),
+    request(
+      `/agents/${encodeURIComponent(agentId)}/capabilities`
+    ),
 
   getAgentTrust: (agentId) =>
-    request(`/agents/${encodeURIComponent(agentId)}/trust`),
+    request(
+      `/agents/${encodeURIComponent(agentId)}/trust`
+    ),
 
   authorizeTransaction: (payload) =>
     request("/transactions/authorize", {
@@ -69,13 +83,17 @@ export const api = {
     }),
 
   getTrust: (agentId) =>
-    request(`/risk/${encodeURIComponent(agentId)}/trust`),
+    request(
+      `/risk/${encodeURIComponent(agentId)}/trust`
+    ),
 
   getAuditLogs: () =>
     request("/audit/"),
 
   getAgentAuditLogs: (agentId) =>
-    request(`/audit/${encodeURIComponent(agentId)}`),
+    request(
+      `/audit/${encodeURIComponent(agentId)}`
+    ),
 
   createPayment: (payload) =>
     request("/payments/create", {
@@ -103,6 +121,9 @@ export const api = {
       })
     }),
 
+  getPendingApprovals: () =>
+    request("/approvals/"),
+
   approvalDecision: (payload) =>
     request("/approvals/decision", {
       method: "POST",
@@ -110,7 +131,9 @@ export const api = {
     }),
 
   getApproval: (transactionId) =>
-    request(`/approvals/${encodeURIComponent(transactionId)}`)
+    request(
+      `/approvals/${encodeURIComponent(transactionId)}`
+    )
 };
 
 export default api;

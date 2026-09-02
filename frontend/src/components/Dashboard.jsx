@@ -2,18 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import api from "../lib/api";
 
+import api from "../lib/api";
 
 import TransactionTable from "./TransactionTable";
 import RiskCard from "./RiskCard";
 import PaymentCard from "./PaymentCard";
 import ApprovalPanel from "./ApprovalPanel";
 import AgentCard from "./AgentCard";
-
-
-
-
 
 export default function Dashboard() {
   const [agents, setAgents] = useState([]);
@@ -31,10 +27,21 @@ export default function Dashboard() {
         api.getAuditLogs()
       ]);
 
-      setAgents(Array.isArray(agentsData) ? agentsData : []);
-      setAuditLogs(Array.isArray(auditData) ? auditData : []);
+      setAgents(
+        Array.isArray(agentsData)
+          ? agentsData
+          : agentsData?.agents || []
+      );
+
+      setAuditLogs(
+        Array.isArray(auditData)
+          ? auditData
+          : auditData?.events || []
+      );
     } catch (err) {
-      setError(err.message || "Unable to load dashboard");
+      setError(
+        err.message || "Unable to load dashboard"
+      );
     } finally {
       setLoading(false);
     }
@@ -46,23 +53,44 @@ export default function Dashboard() {
 
   const totalTransactions = auditLogs.length;
 
-  const approved = auditLogs.filter(
-    (item) => item.decision === "APPROVED" || item.decision === "APPROVE"
-  ).length;
+  const approved = auditLogs.filter((item) => {
+    const decision = String(
+      item.decision || ""
+    ).toUpperCase();
 
-  const blocked = auditLogs.filter(
-    (item) => item.decision === "BLOCKED" || item.decision === "BLOCK"
-  ).length;
+    return (
+      decision === "APPROVED" ||
+      decision === "APPROVE"
+    );
+  }).length;
 
-  const stepUp = auditLogs.filter(
-    (item) => item.decision === "STEP_UP" || item.decision === "STEP-UP"
-  ).length;
+  const blocked = auditLogs.filter((item) => {
+    const decision = String(
+      item.decision || ""
+    ).toUpperCase();
+
+    return (
+      decision === "BLOCKED" ||
+      decision === "BLOCK"
+    );
+  }).length;
+
+  const stepUp = auditLogs.filter((item) => {
+    const decision = String(
+      item.decision || ""
+    )
+      .toUpperCase()
+      .replace("-", "_");
+
+    return decision === "STEP_UP";
+  }).length;
 
   const averageTrust =
     agents.length > 0
       ? Math.round(
           agents.reduce(
-            (sum, agent) => sum + Number(agent.trust_score || 0),
+            (sum, agent) =>
+              sum + Number(agent.trust_score || 0),
             0
           ) / agents.length
         )
@@ -71,7 +99,9 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="dashboard-page">
-        <div className="loading-state">Loading AgentTrust...</div>
+        <div className="loading-state">
+          Loading AgentTrust...
+        </div>
       </div>
     );
   }
@@ -80,13 +110,23 @@ export default function Dashboard() {
     <div className="dashboard-page">
       <header className="dashboard-header">
         <div>
-          <div className="dashboard-brand">AgentTrust</div>
+          <div className="dashboard-brand">
+            AgentTrust
+          </div>
+
           <h1>Merchant Console</h1>
-          <p>Monitor AI agents, transactions, risk and trust.</p>
+
+          <p>
+            Monitor AI agents, transactions, risk
+            and trust.
+          </p>
         </div>
 
         <div className="header-actions">
-          <Link href="/buyer" className="primary-button">
+          <Link
+            href="/buyer"
+            className="primary-button"
+          >
             Open AI Buyer →
           </Link>
         </div>
@@ -138,7 +178,11 @@ export default function Dashboard() {
           <div className="panel-header">
             <div>
               <h2>AI Agents</h2>
-              <p>Agents currently registered with AgentTrust.</p>
+
+              <p>
+                Agents currently registered with
+                AgentTrust.
+              </p>
             </div>
 
             <Link href="/dashboard/agents">
@@ -152,12 +196,17 @@ export default function Dashboard() {
                 No agents registered yet.
               </div>
             ) : (
-              agents.slice(0, 5).map((agent) => (
-                <AgentCard
-                  key={agent.id || agent.external_agent_id}
-                  agent={agent}
-                />
-              ))
+              agents
+                .slice(0, 5)
+                .map((agent) => (
+                  <AgentCard
+                    key={
+                      agent.id ||
+                      agent.external_agent_id
+                    }
+                    agent={agent}
+                  />
+                ))
             )}
           </div>
         </div>
@@ -166,7 +215,11 @@ export default function Dashboard() {
           <div className="panel-header">
             <div>
               <h2>Recent Decisions</h2>
-              <p>Latest AgentTrust transaction events.</p>
+
+              <p>
+                Latest AgentTrust transaction
+                events.
+              </p>
             </div>
 
             <Link href="/dashboard/audit">
@@ -195,10 +248,17 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ label, value, type }) {
+function StatCard({
+  label,
+  value,
+  type
+}) {
   return (
-    <div className={`stat-card ${type || ""}`}>
+    <div
+      className={`stat-card ${type || ""}`}
+    >
       <span>{label}</span>
+
       <strong>{value}</strong>
     </div>
   );

@@ -17,6 +17,7 @@ export default function AgentsPage() {
   async function loadAgents() {
     try {
       const data = await api.getAgents();
+      console.log("AGENTS FROM API:", data);
 
       setAgents(
         Array.isArray(data) ? data : []

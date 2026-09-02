@@ -1647,3 +1647,163 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+
+
+/* 
+   TRANSACTION TABLE
+    */
+
+.transaction-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding: 0 0 8px;
+}
+
+.transaction-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.transaction-table th,
+.transaction-table td {
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid #252936;
+}
+
+.transaction-table th {
+  color: #8b93a7;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.transaction-table td {
+  color: #dce1eb;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.transaction-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.transaction-table tbody tr:hover {
+  background: #151821;
+}
+
+.transaction-table th:nth-child(1),
+.transaction-table td:nth-child(1) {
+  width: 30%;
+}
+
+.transaction-table th:nth-child(2),
+.transaction-table td:nth-child(2) {
+  width: 15%;
+}
+
+.transaction-table th:nth-child(3),
+.transaction-table td:nth-child(3) {
+  width: 12%;
+}
+
+.transaction-table th:nth-child(4),
+.transaction-table td:nth-child(4) {
+  width: 10%;
+}
+
+.transaction-table th:nth-child(5),
+.transaction-table td:nth-child(5) {
+  width: 18%;
+}
+
+.transaction-table th:nth-child(6),
+.transaction-table td:nth-child(6) {
+  width: 15%;
+}
+
+.table-agent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.table-agent > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-avatar {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #20232d;
+  color: #f5f7fb;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.transaction-table .decision-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.transaction-table .decision-badge.approved {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+}
+
+.transaction-table .decision-badge.blocked {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+}
+
+.transaction-table .decision-badge.stepup {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.transaction-table .decision-badge.neutral {
+  color: #9ca3af;
+  background: rgba(156, 163, 175, 0.08);
+  border: 1px solid rgba(156, 163, 175, 0.2);
+}
+
+.risk-low {
+  color: #4ade80;
+}
+
+.risk-medium {
+  color: #fbbf24;
+}
+
+.risk-high {
+  color: #f87171;
+}
+
+@media (max-width: 900px) {
+  .transaction-table {
+    min-width: 760px;
+  }
+}

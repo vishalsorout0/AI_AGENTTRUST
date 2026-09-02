@@ -1,32 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../lib/api";
 import { loadRazorpay } from "../lib/razorpay";
 
 export default function ApprovalPanel() {
-  const [transactionId, setTransactionId] = useState("");
   const [approval, setApproval] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  async function findApproval() {
-    if (!transactionId.trim()) {
-      setMessage("Enter a transaction ID.");
-      return;
-    }
+  useEffect(() => {
+    loadPendingApproval();
+  }, []);
 
+  async function loadPendingApproval() {
     try {
       setLoading(true);
       setMessage("");
 
-      const data = await api.getApproval(transactionId.trim());
+      const data = await api.getPendingApprovals();
 
-      setApproval(data);
+      const pending =
+        data?.approvals?.find(
+          (item) =>
+            String(item.status).toUpperCase() === "PENDING"
+        ) || null;
+
+      setApproval(pending);
+
+      if (!pending) {
+        setMessage("No pending STEP-UP transactions.");
+      }
     } catch (error) {
       setApproval(null);
       setMessage(
-        error.message || "Approval request not found."
+        error.message ||
+          "Unable to load pending approvals."
       );
     } finally {
       setLoading(false);
@@ -58,21 +67,25 @@ export default function ApprovalPanel() {
       }
 
       setMessage(
-        "Approved. Creating Razorpay order..."
+        "Approved. Creating payment..."
       );
 
-      const order = await api.createOrder({
-        transaction_id: approval.transaction_id,
+      const payment = await api.createPayment({
+        agent_id: approval.agent_id,
         amount: Number(approval.amount),
-        currency: "INR"
+        category: approval.category
       });
 
-      if (!order?.success) {
+      if (!payment?.order_id) {
         throw new Error(
-          order?.message ||
-            "Unable to create Razorpay order."
+          payment?.message ||
+            "Unable to create payment."
         );
       }
+
+      setMessage(
+        "Payment created. Opening Razorpay Checkout..."
+      );
 
       const razorpayLoaded = await loadRazorpay();
 
@@ -83,8 +96,8 @@ export default function ApprovalPanel() {
       }
 
       const keyId =
-        order?.key_id ||
-        order?.razorpay_key_id ||
+        payment?.key_id ||
+        payment?.razorpay_key_id ||
         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
 
       if (!keyId) {
@@ -95,11 +108,11 @@ export default function ApprovalPanel() {
 
       const razorpay = new window.Razorpay({
         key: keyId,
-        amount: Number(order.amount),
-        currency: order.currency || "INR",
+        amount: Number(payment.amount) * 100,
+        currency: payment.currency || "INR",
         name: "AgentTrust",
         description: "Approved AI purchase",
-        order_id: order.order_id,
+        order_id: payment.order_id,
 
         handler: function (response) {
           setMessage(
@@ -147,26 +160,17 @@ export default function ApprovalPanel() {
       <div className="panel-header">
         <div>
           <h2>Human Approval</h2>
+
           <p>
             Review STEP-UP transactions before payment.
           </p>
         </div>
-      </div>
-
-      <div className="approval-search">
-        <input
-          value={transactionId}
-          onChange={(event) =>
-            setTransactionId(event.target.value)
-          }
-          placeholder="Enter transaction ID"
-        />
 
         <button
-          onClick={findApproval}
+          onClick={loadPendingApproval}
           disabled={loading}
         >
-          {loading ? "Checking..." : "Check"}
+          {loading ? "Checking..." : "Refresh"}
         </button>
       </div>
 
@@ -181,7 +185,10 @@ export default function ApprovalPanel() {
           <div className="approval-request-header">
             <div>
               <span>STEP-UP REQUEST</span>
-              <h3>Human confirmation required</h3>
+
+              <h3>
+                Human confirmation required
+              </h3>
             </div>
 
             <span className="decision-badge stepup">
@@ -192,6 +199,7 @@ export default function ApprovalPanel() {
           <div className="approval-details">
             <div>
               <span>Agent</span>
+
               <strong>
                 {approval.agent_id || "Unknown"}
               </strong>
@@ -199,6 +207,7 @@ export default function ApprovalPanel() {
 
             <div>
               <span>Amount</span>
+
               <strong>
                 ₹
                 {Number(
@@ -209,6 +218,7 @@ export default function ApprovalPanel() {
 
             <div>
               <span>Category</span>
+
               <strong>
                 {approval.category || "Unknown"}
               </strong>
@@ -216,6 +226,7 @@ export default function ApprovalPanel() {
 
             <div>
               <span>Transaction</span>
+
               <strong>
                 {approval.transaction_id}
               </strong>

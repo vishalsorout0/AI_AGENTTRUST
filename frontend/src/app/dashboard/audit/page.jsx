@@ -16,13 +16,19 @@ export default function AuditPage() {
   async function loadAudit() {
     try {
       setLoading(true);
+      setError("");
 
       const data = await api.getAuditLogs();
 
-      setLogs(Array.isArray(data) ? data : []);
+      setLogs(
+        Array.isArray(data)
+          ? data
+          : data?.events || []
+      );
     } catch (err) {
       setError(
-        err.message || "Unable to load audit trail."
+        err.message ||
+          "Unable to load audit trail."
       );
     } finally {
       setLoading(false);
@@ -55,6 +61,12 @@ export default function AuditPage() {
       {error && (
         <div className="error-box">
           {error}
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="audit-summary">
+          {logs.length} audit events recorded
         </div>
       )}
 
@@ -136,15 +148,28 @@ function AuditRow({ log }) {
         </span>
 
         <span>
-          Transaction:{" "}
-          {log.transaction_id || "--"}
+          Amount: ₹
+          {Number(
+            log.amount || 0
+          ).toLocaleString("en-IN")}
+        </span>
+
+        <span>
+          Category: {log.category || "--"}
         </span>
       </div>
 
       <div className="audit-risk">
         <span>Risk</span>
         <strong>
-          {log.risk_score ?? "--"}
+          {log.risk_score ?? "--"}/100
+        </strong>
+      </div>
+
+      <div className="audit-trust">
+        <span>Trust</span>
+        <strong>
+          {log.trust_score ?? "--"}/100
         </strong>
       </div>
 
@@ -169,6 +194,7 @@ function formatDate(value) {
   return date.toLocaleString("en-IN", {
     day: "2-digit",
     month: "short",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit"
   });
