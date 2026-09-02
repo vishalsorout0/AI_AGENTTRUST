@@ -2,13 +2,13 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app.db.database import supabase
-from app.payments.payment_service import create_payment
 
 
 router = APIRouter(
     prefix="/approvals",
     tags=["Approvals"]
 )
+
 
 approvals = {}
 
@@ -27,6 +27,9 @@ def create_approval_request(
 ):
     approval = {
         "transaction_id": transaction_id,
+        "agent_id": agent_id,
+        "amount": amount,
+        "category": category,
         "status": "PENDING",
         "approver_id": None
     }
@@ -44,6 +47,34 @@ def create_approval_request(
         }).execute()
 
     return approval
+
+
+@router.get("/")
+def get_pending_approvals():
+    if supabase:
+        response = (
+            supabase
+            .table("approvals")
+            .select("*")
+            .eq("status", "PENDING")
+            .execute()
+        )
+
+        return {
+            "count": len(response.data or []),
+            "approvals": response.data or []
+        }
+
+    pending = [
+        approval
+        for approval in approvals.values()
+        if approval.get("status") == "PENDING"
+    ]
+
+    return {
+        "count": len(pending),
+        "approvals": pending
+    }
 
 
 @router.post("/create")
@@ -76,6 +107,12 @@ def approval_decision(data: ApprovalRequest):
             detail="Approval request not found"
         )
 
+    if str(approval.get("status", "")).upper() != "PENDING":
+        raise HTTPException(
+            status_code=400,
+            detail="Approval request has already been decided"
+        )
+
     status = "APPROVED" if data.approved else "REJECTED"
 
     approval["status"] = status
@@ -99,6 +136,7 @@ def approval_decision(data: ApprovalRequest):
     approvals[data.transaction_id] = approval
 
     return approval
+
 
 @router.get("/{transaction_id}")
 def get_approval(transaction_id: str):

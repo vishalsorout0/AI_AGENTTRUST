@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from .api.routes.transactions import router as transactions_router
 from .api.routes.agents import router as agents_router
 from .api.routes.policies import router as policies_router
@@ -12,8 +13,6 @@ from app.webhooks.razorpay_webhook import router as razorpay_webhook_router
 from app.db.database import is_configured
 
 
-
-
 app = FastAPI(
     title="AgentTrust API",
     description="Trust infrastructure for AI-powered commerce",
@@ -23,7 +22,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

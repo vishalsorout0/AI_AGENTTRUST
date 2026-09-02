@@ -5,6 +5,7 @@ from app.audit.audit_service import (
     get_agent_audit_logs
 )
 
+
 router = APIRouter(
     prefix="/audit",
     tags=["Audit"]
@@ -13,18 +14,20 @@ router = APIRouter(
 
 @router.get("/")
 def get_all_audit_logs():
+    events = get_audit_logs()
+
     return {
-        "count": len(get_audit_logs()),
-        "events": get_audit_logs()
+        "count": len(events),
+        "events": events
     }
 
 
 @router.get("/{agent_id}")
 def get_agent_logs(agent_id: str):
-    logs = get_agent_audit_logs(agent_id)
+    events = get_agent_audit_logs(agent_id)
 
     return {
         "agent_id": agent_id,
-        "count": len(logs),
-        "events": logs
+        "count": len(events),
+        "events": events
     }

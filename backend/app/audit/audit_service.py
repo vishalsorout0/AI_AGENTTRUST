@@ -1,7 +1,4 @@
-from app.audit.audit_event import create_audit_event
 from app.db.database import supabase
-
-_audit_logs = []
 
 
 def save_audit_event(
@@ -24,20 +21,43 @@ def save_audit_event(
     }
 
     if supabase:
-        supabase.table(
-            "audit_logs"
-        ).insert(event).execute()
+        response = (
+            supabase
+            .table("audit_logs")
+            .insert(event)
+            .execute()
+        )
+
+        if response.data:
+            return response.data[0]
 
     return event
 
 
 def get_audit_logs():
-    return _audit_logs
+    if supabase:
+        response = (
+            supabase
+            .table("audit_logs")
+            .select("*")
+            .execute()
+        )
+
+        return response.data or []
+
+    return []
 
 
 def get_agent_audit_logs(agent_id: str):
-    return [
-        event
-        for event in _audit_logs
-        if event["agent_id"] == agent_id
-    ]
+    if supabase:
+        response = (
+            supabase
+            .table("audit_logs")
+            .select("*")
+            .eq("agent_id", agent_id)
+            .execute()
+        )
+
+        return response.data or []
+
+    return []
