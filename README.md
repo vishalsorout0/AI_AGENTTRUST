@@ -16,6 +16,13 @@ The core principle is simple:
 
 
 ---
+## Complete Workflow
+
+<img width="2720" height="3360" alt="agenttrust_workflow_detailed" src="https://github.com/user-attachments/assets/0110b735-f60f-4ca7-9a07-51c821b024a4" />
+
+
+---
+
 ## 📑 Table of Contents
 
 - [🚀 Overview](#-overview)
