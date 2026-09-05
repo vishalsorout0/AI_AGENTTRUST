@@ -2,30 +2,10 @@
 
 import ProductCard from "./ProductCard";
 
-/*
-  PRODUCT DISTRIBUTION
-  --------------------
-  APPROVED  = 100
-  STEP-UP   = 50
-  BLOCK     = 25
-
-  Total = 175 products
-
-  IMPORTANT:
-  Product group is a DEMO classification.
-  AgentTrust backend remains the final authority
-  for APPROVE / STEP-UP / BLOCK.
-*/
 
 export const products = [
 
-  // ============================================================
-  // 100 NORMAL / APPROVE PRODUCTS
-  // ============================================================
 
-  // -------------------------
-  // ELECTRONICS - 20
-  // -------------------------
 
   {
     id: "approve-wireless-earbuds",
@@ -188,9 +168,7 @@ export const products = [
     icon: "🔗"
   },
 
-  // -------------------------
-  // FOOD - 20
-  // -------------------------
+
 
   {
     id: "approve-pizza",
@@ -353,9 +331,6 @@ export const products = [
     icon: "☕"
   },
 
-  // -------------------------
-  // TRAVEL - 20
-  // -------------------------
 
   {
     id: "approve-airport-transfer",
@@ -518,9 +493,6 @@ export const products = [
     icon: "🚐"
   },
 
-  // -------------------------
-  // ACCESSORIES - 20
-  // -------------------------
 
   {
     id: "approve-mechanical-keyboard",
@@ -683,9 +655,6 @@ export const products = [
     icon: "⚡"
   },
 
-  // -------------------------
-  // OFFICE - 20
-  // -------------------------
 
   {
     id: "approve-office-chair",
@@ -848,9 +817,7 @@ export const products = [
     icon: "🗃️"
   },
 
-  // ============================================================
-  // 50 STEP-UP PRODUCTS
-  // ============================================================
+
 
   ...Array.from({ length: 50 }, (_, index) => {
     const number = index + 1;
@@ -892,10 +859,6 @@ export const products = [
     };
   }),
 
-  // ============================================================
-  // 25 BLOCK PRODUCTS
-  // ============================================================
-
   ...Array.from({ length: 25 }, (_, index) => {
     const number = index + 1;
 
@@ -911,7 +874,8 @@ export const products = [
       "Enterprise Hardware",
       "Luxury Travel Package",
       "High-Value Office Equipment",
-      "Premium Electronics Bundle"
+      "Premium Electronics Bundle",
+      "luxurious Gaming laptop with big processor"
     ];
 
     const category =
@@ -926,7 +890,7 @@ export const products = [
       category,
       description:
         "High-risk purchase reserved for AgentTrust BLOCK testing.",
-      price: 15000 + number * 200,
+      price: 40000 + number * 200,
       icon: "🔴"
     };
   })

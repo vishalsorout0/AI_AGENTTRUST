@@ -22,7 +22,7 @@ The core principle is simple:
 - [🎯 Problem Statement](#-problem-statement)
 - [💡 Solution](#-solution)
 - [🏗️ Architecture](#️-architecture)
-- [🤖 AI Layer — Mistral](#-ai-layer--mistral)
+- [🤖 AI Layer — Mistral + Gemini](#-ai-layer--mistral--Gemini)
 - [🛡️ AgentTrust Security Layer](#️-agenttrust-security-layer)
 - [💳 Razorpay Integration](#-razorpay-integration)
 - [🗄️ Supabase](#️-supabase)
@@ -69,7 +69,8 @@ The selected purchase is passed through AgentTrust, where the system evaluates:
 * Approval requirements
 
 Only after AgentTrust makes the final decision can the transaction proceed to Razorpay.
-
+---
+*The current shopping data is dummy*
 ---
 
 ## 🎯 Problem Statement
@@ -196,9 +197,12 @@ The backend remains the final security boundary.
 
 ---
 
-## 🤖 AI Layer — Mistral
+## 🤖 AI Layer — Mistral + Gemini
 
-The AI Buyer uses **Mistral** to understand natural-language shopping requests and select the best matching product from the provided catalog.
+The AI Buyer uses Mistral as the primary AI provider to understand natural-language shopping requests and select the best matching product from the provided catalog.
+
+If Mistral is temporarily unavailable or returns a rate-limit response, AgentTrust automatically falls back to Gemini 3.5 Flash-Lite.
+
 
 The Mistral endpoint:
 
@@ -699,6 +703,7 @@ Add:
 
 ```env
 MISTRAL_API_KEY=your_mistral_api_key
+GEMINI_API_KEY=your_gemini_api_key
 NEXT_PUBLIC_API_URL=your_backend_url
 ```
 

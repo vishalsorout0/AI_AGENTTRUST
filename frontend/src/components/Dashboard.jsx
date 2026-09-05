@@ -127,7 +127,7 @@ export default function Dashboard() {
             href="/buyer"
             className="primary-button"
           >
-            Open AI Buyer →
+            AI Buyer →
           </Link>
         </div>
       </header>

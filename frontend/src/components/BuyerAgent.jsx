@@ -424,7 +424,7 @@ export default function BuyerAgent() {
                 e.target.value
               )
             }
-            placeholder="e.g. Find me the best laptop under ₹3 lakh"
+            placeholder="e.g. Find me the Sticky Notes Pack under ₹500"
             disabled={
               aiLoading || loading
             }
